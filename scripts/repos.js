@@ -36,10 +36,9 @@ const renderRepos = () => {
     if (relevantRepos.checked) { 
         if (relevantReposLabel) 
             relevantReposLabel.textContent = 'Relevant only';
-        
-        // repoList.textContent = '<p class="text-muted mb-0">Some repositories were hidden due to the selected filter.</p>';
-        // relevantReposLabel.textContent = 'Relevant only';
+    
         const infoMsg = document.createElement('div');
+        
         infoMsg.className = 'col-12 text-muted mb-3';
         infoMsg.textContent = 'Only selected repositories are shown.';
         repoList.appendChild(infoMsg);
@@ -48,7 +47,6 @@ const renderRepos = () => {
     }
     // if no filter is selected, show all repositories
     else { 
-        // relevantReposLabel.textContent = 'All GitHub repositories';
         if (relevantReposLabel) relevantReposLabel.textContent = 'All GitHub repositories';
     }
 
@@ -80,14 +78,6 @@ const renderRepos = () => {
 }
 
 relevantRepos.addEventListener('change', () => {
-    // const label = document.querySelector('label[for="relevantRepos"]');
-    // if (relevantRepos.checked) {
-    //     relevantReposLabel.classList.add('active');
-    //     label.classList.add('active');
-    // } else {
-    //     label.classList.remove('active');
-    // }
-
     if (relevantReposLabel) {
         relevantRepos.checked ? relevantReposLabel.classList.add('active') : relevantReposLabel.classList.remove('active');
     }
