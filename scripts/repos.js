@@ -1,15 +1,8 @@
 const relevantRepos = document.getElementById('relevantRepos');
 const relevantReposLabel = document.querySelector('label[for="relevantRepos"]');
 const repoList = document.getElementById('repo-list');
-// priority projects selection
-const projectList = [
-    'steam-id-scraper', 
-    'password-generator', 
-    'textlua-editor', 
-    'todo-list', 
-    'kpl1337.github.io'
-];
 
+const RELEVANCE_THRESHOLD = 80;
 let allRepos = [];
 
 // function to retrieve github repositories
@@ -27,26 +20,65 @@ const fetchRepos = async () => {
     }
 }
 
+// function to get a repository's "relevance" score
+const getRelevanceScore = (repo) => {
+    let score = 0;
+
+    // explicit priority list
+    const priorityRepos = [
+        'steam-id-scraper',
+        'password-generator',
+        'textlua-editor',
+        'todo-list',
+        'kpl1337.github.io',
+        'excelconverter'
+    ];
+    if (priorityRepos.includes(repo.name)) score += 100;
+
+    // forks = less relevant
+    if (repo.fork) score -= 50;
+
+    // community interest
+    score += repo.stargazers_count * 10;
+    score += repo.watchers_count * 5;
+    score += repo.forks_count * 3;
+
+    // description
+    if (repo.description) score += 15;
+
+    // homepage / live demo
+    if (repo.homepage) score += 20;
+
+    // last updated within the last 6 months
+    const sixMonthsAgo = Date.now() - 1000 * 60 * 60 * 24 * 180;
+    if (new Date(repo.pushed_at) > sixMonthsAgo) score += 10;
+
+    // topics/tags set
+    if (repo.topics && repo.topics.length > 0) score += repo.topics.length * 5;
+
+    return score;
+};
+
 const renderRepos = () => {
     // clear repository list element
-    repoList.innerHTML = ''; 
+    repoList.innerHTML = '';
 
-    let filteredRepos = allRepos;
-    
-    if (relevantRepos.checked) { 
-        if (relevantReposLabel) 
-            relevantReposLabel.textContent = 'Relevant only';
-    
+    let filteredRepos = [...allRepos];
+
+    if (relevantRepos.checked) {
+        if (relevantReposLabel) relevantReposLabel.textContent = 'Relevant only';
+
+        filteredRepos = allRepos
+            .map(repo => ({ repo, score: getRelevanceScore(repo) }))
+            .filter(({ score }) => score >= RELEVANCE_THRESHOLD)
+            .sort((a, b) => b.score - a.score)   // best first
+            .map(({ repo }) => repo);
+
         const infoMsg = document.createElement('div');
-        
         infoMsg.className = 'col-12 text-muted mb-3';
-        infoMsg.textContent = 'Only selected repositories are shown.';
+        infoMsg.textContent = `Showing ${filteredRepos.length} relevant repositories.`;
         repoList.appendChild(infoMsg);
-
-        filteredRepos = allRepos.filter(repo => projectList.includes(repo.name));
-    }
-    // if no filter is selected, show all repositories
-    else { 
+    } else {
         if (relevantReposLabel) relevantReposLabel.textContent = 'All GitHub repositories';
     }
 
